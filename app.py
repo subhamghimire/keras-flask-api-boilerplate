@@ -5,6 +5,7 @@ from tensorflow import keras
 from keras.models import load_model
 from keras.utils import load_img, img_to_array 
 from flask import *
+from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
@@ -21,17 +22,23 @@ def get_file_path_and_save(request):
     return file_path
 
 def predict_probability(model, image_path):
-    img = load_img(image_path, target_size=(256, 256))
+    img = load_img(image_path, target_size=(100, 100))
     # Preprocessing the image
     x = img_to_array(img)
     img_pred = np.expand_dims(x, axis=0)
     result = model.predict(img_pred)
+    print('result')
+    print(result)
     return result
 
 
-model = load_model('models/v1.h5')
-# Show the model architecture
-model.summary()
+def get_model():
+    model = load_model('./models/v1.h5')
+    model.summary()
+    model.freeze()
+    print(" * Model loaded!")
+    return model
+
 
 # Classes 
 classes = {0: 'A',
@@ -50,9 +57,10 @@ def index():
 def upload():
     if request.method == 'POST':
         try:
+            print('FJNDJNF')
             # Get the file from post request
             file_path = get_file_path_and_save(request)
-            pred = predict_probability(model, file_path)
+            pred = predict_probability(get_model(), file_path)
 
             pred_class = pred.argmax(axis=-1)
             print(f"predicted class:", pred_class)
@@ -66,7 +74,7 @@ def upload():
             print(f"Predicted image:", result)
 
             os.remove(file_path)
-                        
+
             return {"data": result, "probability": formated_pred_prob, "status": 200}, 200
 
         except Exception as e:
@@ -74,8 +82,6 @@ def upload():
             return {"data": "Warning!!!, Please upload valid images format only"}, 400
     return None, 200
 
-
-
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)
+            
