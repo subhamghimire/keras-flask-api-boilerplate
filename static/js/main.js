@@ -46,8 +46,6 @@ $(document).ready(function () {
         $('.loader').hide();
         $('#result').fadeIn(600);
         $('#result').text('Predicted image is: ' + data.data + ' (Accuracy: ' + data.probability + '%)');
-        console.log(data.probability);
-        console.log(status);
       },
       error: function (data) {
         $('.loader').hide();
